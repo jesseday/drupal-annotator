@@ -5,7 +5,7 @@
  */
 function annotator_init() {
   if (user_access('administer annotations') ||
-      user_access('view annotations') ||
+      user_access('view own annotations') ||
       user_access('create annotations')) {
 
     if (module_exists('locale')) {
@@ -13,8 +13,14 @@ function annotator_init() {
     }
     drupal_add_library('annotator', 'annotator', TRUE);
     drupal_add_js(drupal_get_path('module', 'annotator') . '/js/annotator.js');
-
+    
     annotator_execute_plugins();
+    if($node_types = annotator_node_type_settings()) {
+      drupal_add_js(array('annotator_enabled_node_types' => (array) $node_types), 'setting');
+    }
+    if($dom_selector = annotator_dom_selector_settings()) {
+      drupal_add_js(array('annotator_selector' => (array) $dom_selector), 'setting');
+    }
   }
 }
 
@@ -28,9 +34,14 @@ function annotator_permission() {
       'description' => t('Allows users to annotation tasks.'),
       'restrict access' => TRUE,
     ),
-    'view annotations' => array(
-      'title' => t('View annotations'),
-      'description' => t('Allows users to view annotations.'),
+    'view all annotations' => array(
+      'title' => t('View all annotations'),
+      'description' => t('Allows users to view all annotations.'),
+      'restrict access' => TRUE,
+    ),
+    'view own annotations' => array(
+      'title' => t('View own annotations'),
+      'description' => t('Allows users to view own annotations.'),
       'restrict access' => TRUE,
     ),
     'edit any annotations' => array(
@@ -64,6 +75,21 @@ function annotator_menu() {
     'access arguments' => array('administer annotations'),
     'type' => MENU_NORMAL_ITEM,
     'file' => 'annotator.pages.inc',
+  );
+  $items['admin/config/media/annotator/plugins'] = array(
+    'title' => t('Annotator Plugin Setup'),
+    'type' => MENU_DEFAULT_LOCAL_TASK,
+    'weight' => '-10',
+  );
+  $items['admin/config/media/annotator/general'] = array(
+    'title' => t('General Setup'),
+    'description' => t('General Annotator Setup'),
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('annotator_admin_general'),
+    'access arguments' => array('administer annotations'),
+    'type' => MENU_LOCAL_TASK,
+    'file' => 'annotator.pages.inc',
+    'weight' => '0',
   );
   return $items;
 }
@@ -152,4 +178,57 @@ function annotator_execute_plugins($annotation = NULL, $op = NULL) {
  */
 function annotator_annotation_alter($entity, $op) {
   annotator_execute_plugins($entity, $op);
+}
+
+/**
+ * Returns a list of available node types for suitable for checkbox options
+ * in a 'machine_name' => 'name' format
+ */
+function annotator_get_available_node_types() {
+  $options = array();
+  $types = node_type_get_types();
+  
+  foreach($types as $key => $type) {
+    $options[$key] = $type->name;
+  }
+  
+  return $options;
+}
+
+/**
+ * Return node types in jQuery useable format, eg '.node-type-[node-type]'
+ */
+function annotator_node_type_settings() {
+  $classes = array();
+  $types = variable_get('annotator_enabled_node_types');
+  
+  foreach($types as $key => $type) {
+    if($type) {
+      // Replace underscores with hyphens to match the node type classes
+      $type = str_replace('_', '-', $type);
+      $classes[] = '.node-type-' . $type;
+    }
+  }
+  if(!empty($classes)) {
+    return $classes;
+  }
+  return FALSE;
+}
+
+/**
+ * Return dom selectors in a jQuery useable format, eg. '.[selector]'
+ */
+function annotator_dom_selector_settings() {
+  $class = '';
+  $selector = variable_get('annotator_dom_selector');
+  // Annotator only seems to work when it is instantiated once per page.
+  // To try to help facilitate this, we're only going to use the first selector 
+  // listed, if someone has entered a comma separated list.
+  list($selector) = explode(',', $selector);
+  $class = $selector;
+  
+  if($class !== '') {
+    return $class;
+  }
+  return FALSE;
 }

@@ -5,6 +5,7 @@
  */
 function annotator_admin() {
   $form = $plugin_options = array();
+  
   $form['plugins'] = array(
     '#type' => 'fieldset',
     '#title' => t('Plugins'),
@@ -30,6 +31,7 @@ function annotator_admin() {
   }
 
   $annotator_plugins = variable_get('annotator_plugins', array());
+  
   $form['plugins']['annotator_plugins'] = array(
     '#type' => 'checkboxes',
     '#description' => t('Enable the desired annotator plugins'),
@@ -43,5 +45,36 @@ function annotator_admin() {
     '#collapsed' => FALSE,
   );
   $form['settings'] += (array) $settings;
+  return system_settings_form($form);
+}
+
+function annotator_admin_general() {
+  $type_options = annotator_get_available_node_types();
+  $enabled_node_types = variable_get('annotator_enabled_node_types');
+  $dom_selector = variable_get('annotator_dom_selector');
+
+  $form['base_settings'] = array(
+    '#type' => 'fieldset',
+    '#title' => t('General Annotator Settings'),
+    '#description' => '',
+    '#collapsible' => FALSE,
+    '#collapsed' => FALSE,
+  );
+  $form['base_settings']['annotator_enabled_node_types'] = array(
+    '#type' => 'checkboxes',
+    '#title' => t('Allowed Node Types'),
+    '#options' => $type_options,
+    '#default_value' => $enabled_node_types,
+    '#description' => t('Select the node types that you would like to'
+      . ' include the annotator on.'),
+  );
+  $form['base_settings']['annotator_dom_selector'] = array(
+    '#type' => 'textfield',
+    '#title' => t('Selector'),
+    '#default_value' => $dom_selector,
+    '#description' => t('The dom element class or id to attach the annotator'
+      . ' to.  This should be a valid css/javascript selector. eg "#content" or'
+      . ' ".content".  Any values following a comma will be stripped out.'),
+  );
   return system_settings_form($form);
 }
