@@ -65,7 +65,7 @@ class PermissionsAnnotatorPlugin extends AnnotatorPlugin {
       ),
       'roles' => array_keys($roles),
     );
-    $roles = user_roles(FALSE, 'view annotations');
+    $roles = user_roles(FALSE, 'view own annotations');
     $settings['permissions']['read'] = array(
       'user' => array(),
       'roles' => array_keys($roles),
