@@ -10,33 +10,7 @@
 define('ANNOTATOR_VERSION', '2.0.0');
 define('ANNOTATOR_SCHEMA_VERSION', 'v1.0');
 
-/**
- * API access callback.
- */
-function annotation_api_access($annotation = NULL) {
-  $method = $_SERVER['REQUEST_METHOD'];
 
-  if (!isset($annotation) && $method === 'GET') {
-    // read or search access
-    return annotation_access('view', NULL);
-  }
-  elseif (isset($annotation)) {
-    switch($method) {
-      // create access
-      case 'POST':
-        return annotation_access('create', NULL);
-        break;
-      // update access
-      case 'PUT':
-        return annotation_access('edit', $annotation);
-        break;
-      case 'DELETE':
-        return annotation_access('edit', $annotation);
-        break;
-    }
-  }
-  return FALSE;
-}
 
 /**
  * Annotation API main endpoint
@@ -113,6 +87,8 @@ function annotation_api_create() {
  * Annotation API read
  */
 function annotation_api_read($id) {
+  global $user;
+
   $record = annotation_load($id);
   $record = array_shift($record);
   $record = annotation_api_entity_prepare($record, 'read');
