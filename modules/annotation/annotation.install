@@ -27,6 +27,20 @@ function annotation_schema() {
         'default' => NULL,
         'description' => "The {users}.uid of the associated user.",
       ),
+      'nid' => array(
+        'type' => 'int',
+        'unsigned' => TRUE,
+        'not null' => FALSE,
+        'default' => NULL,
+        'description' => "The {node}.nid of the associated node.",
+      ),
+      'vid' => array(
+        'type' => 'int',
+        'unsigned' => TRUE,
+        'not null' => FALSE,
+        'dfeault' => NULL,
+        'description' => "The {node}.vid of the associated node."
+      ),
       // 'revision_id' => array(
       //   'type' => 'int',
       //   'unsigned' => TRUE,
@@ -132,4 +146,33 @@ function annotation_schema() {
  */
 function annotation_uninstall() {
   variable_del('annotator_store');
+}
+
+/**
+ * Add nid and vid columns to the annotation table
+ */
+function annotation_update_7001() {
+  $fields = drupal_get_schema('annotation');
+  $field_names = array_keys($fields['fields']);
+
+  if(!in_array('nid', $field_names)) {
+    $nid = array(
+      'type' => 'int',
+      'unsigned' => TRUE,
+      'not null' => FALSE,
+      'default' => NULL,
+      'description' => "The {node}.nid of the associated node.",
+    );
+    db_add_field('annotation', 'nid', $nid);
+  }
+  if(!in_array('vid', $field_names)) {
+    $vid = array(
+      'type' => 'int',
+      'unsigned' => TRUE,
+      'not null' => FALSE,
+      'default' => NULL,
+      'description' => "The {node}.vid of the associated node.",
+    );
+    db_add_field('annotation', 'vid', $vid);
+  }
 }
