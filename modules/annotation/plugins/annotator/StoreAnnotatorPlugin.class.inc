@@ -5,6 +5,7 @@
  */
 class StoreAnnotatorPlugin extends AnnotatorPlugin {
   public function settingsForm() {
+    $stored = variable_get('annotator_store');
     $defaults = $this->settings();
     $form['prefix'] = array(
       '#type' => 'textfield',
@@ -44,6 +45,12 @@ class StoreAnnotatorPlugin extends AnnotatorPlugin {
       '#title' => t('Search'),
       '#default_value' => $defaults['urls']['search'],
     );
+    $form['toggle_search'] = array(
+      '#type' => 'checkbox',
+      '#title' => t('Enable search'),
+      '#default_value' => ($stored['toggle_search']) ? $stored['toggle_search']
+        : $defaults['toggle_search'],
+    );
     return $form;
   }
 
@@ -59,6 +66,7 @@ class StoreAnnotatorPlugin extends AnnotatorPlugin {
         'destroy' => '/annotations/:id',
         'search' => '/search',
       ),
+      'toggle_search' => 1,
     );
     return parent::settings($defaults);    
   }
