@@ -67,7 +67,7 @@ function annotation_access($op, $entity, $account = NULL, $entity_type = NULL) {
           || user_access('create annotations', $account);
     case 'view':
       return user_access('administer annotations', $account)
-          || user_access('view annotations', $account);
+          || user_access('view own annotations', $account);
     case 'edit':
       return user_access('administer annotations')
           || user_access('edit any annotations')
@@ -154,6 +154,37 @@ function annotation_menu() {
 }
 
 /**
+ * API access callback.
+ */
+function annotation_api_access($annotation = NULL) {
+  $method = $_SERVER['REQUEST_METHOD'];
+ if(!isset($annotation) && !empty($GLOBALS['HTTP_RAW_POST_DATA'])) {
+    $annotation = $GLOBALS['HTTP_RAW_POST_DATA'];
+  }
+  if (!isset($annotation) && $method === 'GET') {
+    // read or search access
+    return annotation_access('view', NULL);
+  }
+
+  elseif (isset($annotation)) {
+    switch($method) {
+      // create access
+      case 'POST':
+        return annotation_access('create', NULL);
+        break;
+      // update access
+      case 'PUT':
+        return annotation_access('edit', $annotation);
+        break;
+      case 'DELETE':
+        return annotation_access('edit', $annotation);
+        break;
+    }
+  }
+  return FALSE;
+}
+
+/**
  * Gets an array of all test entity types, keyed by the name.
  *
  * @param $name
@@ -169,7 +200,13 @@ function annotation_get_types($name = NULL) {
  */
 function annotation_load($id, $reset = FALSE) {
   $annotations = annotation_load_multiple(array($id), $reset);
+  // Return false if there are no annotations matching the id
+  if(empty($annotations)) {
+    return FALSE;
+  }
+
   return array_shift($annotations);
+
 }
 
 /**
